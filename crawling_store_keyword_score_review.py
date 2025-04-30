@@ -70,7 +70,8 @@ try:
                                                                 'user_hashtag',
                                                                 'user_visit_date',
                                                                 'user_visit_cnt',
-                                                                'user_verification']))
+                                                                'user_verification',
+                                                                'crawling_datetime']))
                 rd.move_to_iframe1()
             more_page_ = rd.click_page_more()
         rd.quit_driver() # region마다 종료하기

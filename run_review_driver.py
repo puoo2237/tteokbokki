@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import re
 
+from datetime import datetime
+
 from save_file import mk_folder, download_img
 
 
@@ -260,6 +262,7 @@ class RunDriver:
         user_review = self.get_user_review()
         user_hashtag = self.get_user_hashtag()
         user_visit_date, user_visit_cnt, user_verification = self.get_visit_info()
+        crawling_datetime = datetime.now()
         
         return [
                 store_id,
@@ -275,7 +278,8 @@ class RunDriver:
                 user_hashtag,
                 user_visit_date,
                 user_visit_cnt,
-                user_verification]
+                user_verification,
+                crawling_datetime]
     
     def click_review_more(self, j:int, tot_review_cnt: int):
         """

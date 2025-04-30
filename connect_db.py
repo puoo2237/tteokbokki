@@ -36,6 +36,7 @@ class ConnectPostgres:
                             user_visit_date timestamp NOT NULL,
                             user_visit_cnt int4 NOT NULL,
                             user_verification varchar(10) NULL,
+                            crawling_datetime timestamp NOT NULL,
                             CONSTRAINT store_review_pk PRIMARY KEY (store_id, user_nickname, user_visit_date, user_visit_cnt),
                             CONSTRAINT store_review_id_fk FOREIGN KEY (store_id) REFERENCES {self.db_['DB_SCHEMA']}.store(store_id) ON DELETE CASCADE
                         );
