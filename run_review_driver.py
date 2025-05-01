@@ -257,6 +257,10 @@ class RunDriver:
         user_nickname = self.get_user_nickname()
         user_review_cnt, user_photo_cnt, user_follower_cnt = self.get_user_info()
         user_photo_path = self.get_user_photo_path(store_id, user_nickname)
+        if len(user_photo_path) == 0:
+            user_photo_path = None
+        elif len(user_photo_path) == 1 and user_photo_path == '':
+            user_photo_path = None
         user_reservation_location = self.get_user_reservation_location()
         # user_score = self.get_user_score()
         user_feature = self.get_user_feature()
