@@ -26,53 +26,53 @@ try:
                 impossible_more_page_ = more_page_.get_attribute('aria-disabled')
 
             stores_ = rd.scoll_store() # 한 페이지에 출력되는 가게 스크롤해서 모두 보기 
-        
-            for i in tqdm(range(1, stores_+1)):
-                rd.click_store(i)
+        for i in tqdm(range(1, stores_+1)):
+            rd.click_store(i)
 
-                store_id = rd.get_store_id() # 가게 id 가져오기
+            store_id = rd.get_store_id() # 가게 id 가져오기
 
-                skip_lists = cp.select_store_id(2)['store_id'].tolist()
-                if store_id in skip_lists:                      
-                    print(f'skip {store_id}')
-                    rd.move_to_iframe1()
-                    continue 
-                
-                rd.go_iframe2() # 두 번째 iframe으로 이동
-                rd.click_review_tab() # 리뷰 탭으로 이동
-
-                review_df = [] # 수집할 테이블 초기화
-                tot_review_cnt = rd.count_score_reviews()
-                print(f"{region}, {store_id}의 총 리뷰 수: {tot_review_cnt}")
-
-                # 리뷰
-                for j in tqdm(range(1, tot_review_cnt+1)):
-                    rd.open_review_division() # 펼쳐보기
-                    users_ = rd.scroll_score_review(j)
-                    user_review = rd.get_review(store_id)
-                    
-                    review_df.append(user_review) 
-                    rd.click_review_more(j, tot_review_cnt) # 더보기 클릭
-
-                
-                # 식당하나 완료할 때마다 DB에 저장
-                cp.save_store_review(pd.DataFrame(review_df, columns = [
-                                                                'store_id',
-                                                                'user_nickname',
-                                                                'user_review_cnt',
-                                                                'user_photo_cnt',
-                                                                'user_follower_cnt',
-                                                                'user_photo_path',
-                                                                'user_reservation_location',
-                                                                # 'user_score',
-                                                                'user_feature',
-                                                                'user_review',
-                                                                'user_hashtag',
-                                                                'user_visit_date',
-                                                                'user_visit_cnt',
-                                                                'user_verification',
-                                                                'crawling_datetime']))
+            skip_lists = cp.select_store_id(2)['store_id'].tolist()
+            if store_id in skip_lists:                      
+                print(f'skip {store_id}')
                 rd.move_to_iframe1()
+                continue  # ★★★새로운 리뷰 업데이트 하는 코드 추가 필요(추후 업데이트)★★★
+            
+            rd.go_iframe2() # 두 번째 iframe으로 이동
+            rd.click_review_tab() # 리뷰 탭으로 이동
+
+            review_df = [] # 수집할 테이블 초기화
+            tot_review_cnt = rd.count_score_reviews()
+            print(f"{region}, {store_id}의 총 리뷰 수: {tot_review_cnt}")
+
+            # 리뷰
+            for j in tqdm(range(1, tot_review_cnt+1)):
+                rd.open_review_division() # 펼쳐보기
+                users_ = rd.scroll_score_review(j)
+                user_review = rd.get_review(store_id)
+                
+                review_df.append(user_review) 
+                rd.click_score_review_more(j, tot_review_cnt) # 더보기 클릭
+
+            
+            # 식당하나 완료할 때마다 DB에 저장
+            cp.save_store_review(pd.DataFrame(review_df, columns = [
+                                                            'store_id',
+                                                            'user_nickname',
+                                                            'user_review_cnt',
+                                                            'user_photo_cnt',
+                                                            'user_follower_cnt',
+                                                            'user_photo_path',
+                                                            'user_reservation_location',
+                                                            # 'user_score',
+                                                            'user_feature',
+                                                            'user_review',
+                                                            'user_hashtag',
+                                                            'user_visit_date',
+                                                            'user_visit_cnt',
+                                                            'user_verification',
+                                                            'crawling_datetime'
+                                                            ]))
+            rd.move_to_iframe1()
             more_page_ = rd.click_page_more()
         rd.quit_driver() # region마다 종료하기
 except Exception as e:

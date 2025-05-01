@@ -34,7 +34,7 @@ try:
                 if store_id in skip_lists:                      
                     print(f'skip {store_id}')
                     rd.move_to_iframe1()
-                    continue 
+                    continue  # ★★★새로운 리뷰 업데이트 하는 코드 추가 필요(추후 업데이트)★★★
                 
                 rd.go_iframe2() # 두 번째 iframe으로 이동
                 rd.click_review_tab() # 리뷰 탭으로 이동

@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 import numpy as np
 import pandas as pd
 import re
+import time
 
 from datetime import datetime
 
@@ -139,7 +140,7 @@ class RunDriver:
                                 EC.presence_of_element_located((By.CSS_SELECTOR, f'div.place_section.k1QQ5'))
                             )
         self.users_ = find_user_.find_elements(By.CSS_SELECTOR, 'div > ul > li') # 사이트에서 노출된 유저 수 파악
-        self.user_ = find_user_.find_element(By.CSS_SELECTOR, f'div > ul > li:nth-child({j})')
+        self.user_ = self.users_[j-1]
         self.actions.move_to_element(self.user_).perform() # 스크롤 이동
         return self.users_
 
@@ -151,7 +152,7 @@ class RunDriver:
                                 EC.presence_of_element_located((By.CSS_SELECTOR, f'div.place_section.buywf'))
                             )
         self.users_ = find_user_.find_elements(By.CSS_SELECTOR, 'div > ul > li') # 사이트에서 노출된 유저 수 파악
-        self.user_ = find_user_.find_element(By.CSS_SELECTOR, f'div > ul > li:nth-child({k})')
+        self.user_ = self.users_[k-1]
         self.actions.move_to_element(self.user_).perform() # 스크롤 이동
         return self.users_        
 
@@ -291,6 +292,19 @@ class RunDriver:
             )
             self.driver.execute_script("arguments[0].scrollIntoView(true);", more_click_)
             self.driver.execute_script("arguments[0].click();", more_click_)
+            time.sleep(2)
+
+    def click_score_review_more(self, j:int, tot_review_cnt: int):
+        """
+        키워드, 별점의 더보기 클릭하기
+        """
+        if len(self.users_) == j and j < tot_review_cnt:
+            more_click_ = self.wait.until(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "fvwqf"))
+            )[-1]
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", more_click_)
+            self.driver.execute_script("arguments[0].click();", more_click_)
+            time.sleep(2)
 
     def quit_driver(self):
         """
