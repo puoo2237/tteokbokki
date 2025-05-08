@@ -186,7 +186,7 @@ class RunDriver:
             img_link_ = href.find_element(By.TAG_NAME, 'img').get_attribute('src').split('?')[0]
             folder_path_ = f'./img/{store_id}'
             rename_nickname_ = user_nickname.replace('*', '$') # 파일 저장 목적으로 변경
-            save_path_ = f'{folder_path_}/{rename_nickname_}_{idx}'
+            save_path_ = f'{folder_path_}/{rename_nickname_}_{idx}.jpg'
             mk_folder(folder_path_)
             download_img(img_link_, save_path_)
             user_photo_path.append(save_path_) # 사진 경로(list)
