@@ -5,6 +5,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 import numpy as np
 import pandas as pd
 import re
@@ -315,3 +316,186 @@ class RunDriver:
         driver 종료하기
         """
         self.driver.quit()
+
+    def get_store_url(self)->str:
+        return self.driver.current_url
+    
+    def get_store_name(self)->str:
+        return self.wait.until(    
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'span.GHAhO')),
+            ).text
+    
+    def get_store_location(self)->str:
+        return self.driver.find_element(By.CSS_SELECTOR, 'span.LDgIH').text
+    
+    def get_store_category(self)->str:
+        return self.driver.find_element(By.CSS_SELECTOR, 'span.lnJFt').text
+    
+    def get_store_business_hour(self)->str:
+        try:
+            self.driver.execute_script("arguments[0].click();", self.driver.find_element(By.CSS_SELECTOR, 'div.y6tNq'))
+            business_hour = [h.text for h in self.driver.find_elements(By.CSS_SELECTOR, 'div.y6tNq')]
+            return business_hour
+        except NoSuchElementException:
+            print('영업시간 데이터 없음')
+    
+    def _count_review_by_keyword(self, keyword: str)->int:
+        """
+        방문자 or 블로그 리뷰 수 추출
+        """
+        for rc in self.driver.find_elements(By.CSS_SELECTOR, 'span.PXMot'):
+            text = rc.text.strip()
+            if keyword in text:
+                try:
+                    return int(text.split()[-1].replace(',', ''))
+                except ValueError:
+                    pass
+        return 0
+    
+    def count_visit_review(self)->int:
+        return self._count_review_by_keyword('방문자')
+    
+    def count_blog_review(self)->int:
+        return self._count_review_by_keyword('블로그')
+    
+    def get_store_info(self, store_id, region)->list:
+        
+        store_name = self.get_store_name()
+        store_location = self.get_store_location()
+        store_business_hour = self.get_store_business_hour()
+        store_visit_review_cnt = self.count_visit_review()
+        store_blog_review_cnt = self.count_blog_review()
+        store_url = self.get_store_url()
+        crawling_datetime = datetime.now()
+
+        return [
+            store_id,
+            store_name,
+            region,
+            store_url,
+            store_location,
+            store_business_hour,
+            store_visit_review_cnt,
+            store_blog_review_cnt,
+            # crawling_datetime
+        ]
+    
+    def click_menu_tab(self):
+        """
+        메뉴 탭 클릭
+        """
+        # 메뉴 탭 찾기
+        menu_tab = self.driver.find_element(By.XPATH, '//a[contains(@href, "menu") or contains(text(), "메뉴")]')
+        # 메뉴 탭 클릭
+        self.driver.execute_script("arguments[0].click();", menu_tab)
+        
+    def click_sold_out(self):
+        # 품절상품 제외 버튼 클릭
+        try:
+            sold_out_checkbox = self.driver.find_element(By.ID, 'sold_out')
+            if sold_out_checkbox.is_selected():
+                label = self.driver.find_element(By.CSS_SELECTOR, 'label[for="sold_out"]')
+                self.driver.execute_script("arguments[0].click();", label)
+                time.sleep(0.5)
+        except NoSuchElementException:
+            print('품절 상품 버튼 없음')
+    
+    def check_menu_sub_tab(self)->int:
+        """
+        포장/매장/배달 탭 존재하는지 확인
+        """
+        sub_tab_text = [sub_tab.text for sub_tab in self.driver.find_elements(By.CSS_SELECTOR, 'a.YsfhA')]
+        return sub_tab_text
+ 
+    def click_menu_sub_tab(self, sub_tab: str, nth: int = 0):
+        """
+        포장/매장/배달 탭 클릭
+        """
+        self.click_sold_out()
+        if nth == 0:
+            tab_element = self.driver.find_element(By.XPATH, f'//a[text()="{sub_tab}"]')
+        else:
+            tab_element = self.driver.find_element(By.XPATH, f'//a[contains(@class, "tab_switch") and contains(., "{sub_tab}")]')
+        self.driver.execute_script("arguments[0].click();", tab_element)
+        time.sleep(1)
+
+    def _get_menu_selectors(self, tab: str) -> dict:
+        """
+        기본/포장or매장or배달 별 css selector 정의
+        """
+        if tab in ['포장', '매장']:
+            return {
+                'sub_tab' : 'take_out' if tab == "포장" else 'store' if tab == '매장' else 'delivery',
+                'info_detail': 'a.info_link',
+                'title': 'div.tit',
+                'desc': 'div.detail',
+                'price': 'div.price',
+                'img': 'img.img'
+            } 
+        # elif tab == '배달' :
+        #     return {
+        #         'sub_tab' : 'delivery',
+        #         'info_detail': 'a.info_link',
+        #         'title': 'div.tit',
+        #         'desc': 'div.detail',
+        #         'price': 'div.price',
+        #         'img': 'img.img'
+        #     } 
+        else:
+            return {
+                'sub_tab' : 'delivery' if tab == '배달' else 'all',
+                'info_detail': 'li.E2jtL',
+                'title': 'span.lPzHi',
+                'desc': 'div.kPogF',
+                'price': 'div.GXS1X',
+                'img': 'img.K0PDV'
+            }
+        
+    def get_menu_info(self, store_id: str, tab: str)->list:
+        """
+        메뉴정보 추출
+        """
+        check_sub_tab_ = 1 if tab in ['포장', '매장', '배달'] else 0
+        selectors = self._get_menu_selectors(tab)
+        menus_ = self.driver.find_elements(By.CSS_SELECTOR, selectors['info_detail'])
+        menu_results = []
+        for menu_idx, menu in enumerate(menus_):
+            try:
+                menu_name = menu.find_element(By.CSS_SELECTOR, selectors['title']).text.strip()
+            except:
+                menu_name = None
+
+            try:
+                desc = menu.find_element(By.CSS_SELECTOR, selectors['desc']).text.strip()
+            except:
+                desc = None
+
+            try:
+                price = menu.find_element(By.CSS_SELECTOR, selectors['price']).text.strip()
+            except:
+                price = None
+
+            try:
+                img_url_ = menu.find_element(By.CSS_SELECTOR, selectors['img']).get_attribute('src')
+                folder_path_ = f'./menu_img/{store_id}_{check_sub_tab_}_{selectors['sub_tab']}'
+                save_path_ = f'{folder_path_}/{menu_idx}.png'
+                mk_folder(folder_path_)
+                download_img(img_url_, save_path_)
+            except:
+                img_url_ = None
+                save_path_ = None
+
+            menu_results.append({
+                        'store_id': store_id,
+                        'is_tab' : check_sub_tab_,
+                        'take_out' : tab,
+                        # 'menu_idx' : menu_idx,
+                        'menu_name' : menu_name,
+                        'menu_description': desc,
+                        'menu_price' : price,
+                        'img_path' : save_path_
+                    })
+            
+        return menu_results
+
+

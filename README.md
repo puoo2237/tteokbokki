@@ -10,9 +10,10 @@
 ## 3. 파일 설명
 - .py
   - connect_db.py: DB의 자료 조회 및 적재
+  - crawling_store_info.py: 가게 정보 및 메뉴 정보 크롤링 코드
   - crawling_store_keyword_score_review.py: 네이버 리뷰 중 키워드, 별점 리뷰에 대해서 수집
   - crawling_store_review.py: 네이버 리뷰 중 리뷰에 대해서 수집
-  - run_review_driver.py: 구글 셀레니움 드라이버가 네이버 리뷰를 수집하기 위해 동적으로 수행되는 작업
+  - run_review_driver.py: 구글 셀레니움 드라이버가 가게 정보, 메뉴 정보, 네이버 리뷰를 수집하기 위해 동적으로 수행되는 작업
   - save_file: 리뷰 수집 중 이미지 파일 저장
 - .json
   - regions.json: 행정구역 정보
