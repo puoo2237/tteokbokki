@@ -18,7 +18,7 @@
 - .json
   - regions.json: 행정구역 정보
   - db_info.json: DB 정보 (보안상의 문제로 제외)
--.ipynb
+- .ipynb
   - data_preprocessing.ipynb: 데이터 전처리
 
 ## 4. 전처리 과정
